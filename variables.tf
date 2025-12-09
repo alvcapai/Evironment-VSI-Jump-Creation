@@ -1,19 +1,13 @@
-variable "aws_region" {
-  description = "AWS region where resources will be created."
+variable "ibm_region" {
+  description = "IBM Cloud region for all resources (e.g., us-south)."
   type        = string
-  default     = "us-east-1"
+  default     = "us-south"
 }
 
 variable "name_prefix" {
   description = "Prefix used to name resources."
   type        = string
   default     = "jump"
-}
-
-variable "vpc_cidr" {
-  description = "CIDR block for the VPC."
-  type        = string
-  default     = "10.0.0.0/16"
 }
 
 variable "public_subnet_cidr" {
@@ -23,36 +17,41 @@ variable "public_subnet_cidr" {
 }
 
 variable "private_subnet_cidr" {
-  description = "CIDR block for the private subnet used for the transit gateway attachment."
+  description = "CIDR block for the private subnet."
   type        = string
   default     = "10.0.101.0/24"
 }
 
-variable "allowed_rdp_cidr" {
-  description = "CIDR block allowed to access RDP on the jump server."
+variable "allowed_admin_cidr" {
+  description = "CIDR allowed to reach the jump host on RDP/SSH."
   type        = string
-  default     = "0.0.0.0/0"
+  default     = "179.100.99.37/32"
 }
 
-variable "key_name" {
-  description = "Existing EC2 key pair name to decrypt the Windows Administrator password."
+variable "ssh_key_id" {
+  description = "IBM Cloud SSH key ID used to access the instance and decrypt the Windows password."
   type        = string
 }
 
-variable "instance_type" {
-  description = "Instance type for the Windows jump server."
+variable "windows_image_id" {
+  description = "IBM Cloud VPC image ID for the Windows Server image."
   type        = string
-  default     = "t3a.medium"
+}
+
+variable "instance_profile" {
+  description = "Instance profile for the jump host."
+  type        = string
+  default     = "bx2-2x8"
 }
 
 variable "jump_volume_size" {
-  description = "Root volume size (GiB) for the jump server."
+  description = "Boot volume size in GB for the jump host."
   type        = number
   default     = 50
 }
 
 variable "transit_gateway_destination_cidr" {
-  description = "CIDR routed from the VPC to the transit gateway (e.g., on-prem or another VPC)."
+  description = "CIDR routed from the VPC to the transit gateway."
   type        = string
   default     = "172.16.0.0/12"
 }

@@ -1,24 +1,26 @@
-# Terraform: VPC with Windows Jump Server and Transit Gateway
+# Terraform: IBM Cloud VPC Jump Host with Transit Gateway
 
-Creates a minimal AWS environment with a VPC, public jump host, private subnet, and a transit gateway attachment.
+Creates an IBM Cloud VPC with a Windows jump host, floating IP, restrictive security group, and a Transit Gateway connection.
 
 ## What it builds
-- VPC with public and private subnets (single AZ)
-- Internet gateway with public routing
-- Windows Server 2022 jump host with RDP access
-- Transit Gateway and VPC attachment using the private subnet
-- Private route to a configurable CIDR via the TGW
+- VPC with public and private subnets (single zone)
+- Public gateway attached to the public subnet
+- Windows jump host with a floating IP
+- Security group allowing **only** `179.100.99.37/32` on ports `3389` and `22`; no egress rules (blocks outbound)
+- Transit Gateway and VPC connection, plus a route delegating a destination CIDR to the TGW
 
 ## Usage
 1) Initialize: `terraform init`
-2) Plan: `terraform plan -var 'key_name=your-keypair'`
-3) Apply: `terraform apply -var 'key_name=your-keypair'`
+2) Plan (supplying your values):  
+   `terraform plan -var 'ssh_key_id=<ssh-key-uuid>' -var 'windows_image_id=<windows-image-uuid>'`
+3) Apply when ready:  
+   `terraform apply -var 'ssh_key_id=<ssh-key-uuid>' -var 'windows_image_id=<windows-image-uuid>'`
 
 Key inputs (see `variables.tf`):
-- `key_name` (required) EC2 key pair name to decrypt the Windows password
-- `aws_region` (default `us-east-1`)
-- `allowed_rdp_cidr` (default `0.0.0.0/0`) tighten to your IP/CIDR
-- `transit_gateway_destination_cidr` network you want routed through the TGW
-- CIDRs for VPC/public/private subnets
+- `ssh_key_id` (required) IBM Cloud SSH key ID to decrypt the Windows password
+- `windows_image_id` (required) Windows Server image ID in your region
+- `allowed_admin_cidr` defaults to `179.100.99.37/32`; change if your admin IP changes
+- `transit_gateway_destination_cidr` network routed through the TGW
+- `ibm_region`, subnet CIDRs, instance profile, boot volume size, and tags
 
-Outputs include the VPC ID, subnet IDs, transit gateway and attachment IDs, and the jump server public IP.
+Outputs include VPC/subnet IDs, security group ID, instance ID, floating IP, transit gateway ID, and the TGW connection/route IDs.

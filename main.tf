@@ -2,15 +2,15 @@ terraform {
   required_version = ">= 1.5.0"
 
   required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
+    ibm = {
+      source  = "IBM-Cloud/ibm"
+      version = ">= 1.61.0"
     }
   }
 }
 
-provider "aws" {
-  region = var.aws_region
+provider "ibm" {
+  region = var.ibm_region
 }
 
 locals {
@@ -22,144 +22,122 @@ locals {
   )
 }
 
-data "aws_availability_zones" "available" {
-  state = "available"
+data "ibm_is_zones" "available" {
+  region = var.ibm_region
 }
 
-data "aws_ami" "windows" {
-  most_recent = true
-  owners      = ["amazon"]
+resource "ibm_is_vpc" "this" {
+  name = "${var.name_prefix}-vpc"
+  tags = local.tags
+}
 
-  filter {
-    name   = "name"
-    values = ["Windows_Server-2022-English-Full-Base-*"]
+resource "ibm_is_public_gateway" "public" {
+  name = "${var.name_prefix}-pgw"
+  vpc  = ibm_is_vpc.this.id
+  zone = data.ibm_is_zones.available.zones[0].name
+  tags = local.tags
+}
+
+resource "ibm_is_subnet" "public" {
+  name                     = "${var.name_prefix}-public"
+  vpc                      = ibm_is_vpc.this.id
+  zone                     = data.ibm_is_zones.available.zones[0].name
+  ipv4_cidr_block          = var.public_subnet_cidr
+  public_gateway           = ibm_is_public_gateway.public.id
+  total_ipv4_address_count = null
+  tags                     = local.tags
+}
+
+resource "ibm_is_subnet" "private" {
+  name                     = "${var.name_prefix}-private"
+  vpc                      = ibm_is_vpc.this.id
+  zone                     = data.ibm_is_zones.available.zones[0].name
+  ipv4_cidr_block          = var.private_subnet_cidr
+  total_ipv4_address_count = null
+  tags                     = local.tags
+}
+
+resource "ibm_is_security_group" "jump" {
+  name = "${var.name_prefix}-jump-sg"
+  vpc  = ibm_is_vpc.this.id
+  tags = local.tags
+}
+
+resource "ibm_is_security_group_rule" "jump_rdp" {
+  group     = ibm_is_security_group.jump.id
+  direction = "inbound"
+  remote    = var.allowed_admin_cidr
+  tcp {
+    port_min = 3389
+    port_max = 3389
+  }
+}
+
+resource "ibm_is_security_group_rule" "jump_ssh" {
+  group     = ibm_is_security_group.jump.id
+  direction = "inbound"
+  remote    = var.allowed_admin_cidr
+  tcp {
+    port_min = 22
+    port_max = 22
+  }
+}
+
+# No outbound rules defined to block all egress traffic.
+
+resource "ibm_is_instance" "jump" {
+  name    = "${var.name_prefix}-jump"
+  image   = var.windows_image_id
+  profile = var.instance_profile
+  zone    = data.ibm_is_zones.available.zones[0].name
+  vpc     = ibm_is_vpc.this.id
+
+  primary_network_interface {
+    subnet          = ibm_is_subnet.public.id
+    security_groups = [ibm_is_security_group.jump.id]
   }
 
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
+  keys = [var.ssh_key_id]
+
+  boot_volume {
+    name                             = "${var.name_prefix}-jump-boot"
+    profile                          = "general-purpose"
+    size                             = var.jump_volume_size
+    delete_volume_on_instance_delete = true
+    tags                             = local.tags
   }
 
-  filter {
-    name   = "root-device-type"
-    values = ["ebs"]
-  }
+  tags = local.tags
 }
 
-resource "aws_vpc" "this" {
-  cidr_block           = var.vpc_cidr
-  enable_dns_support   = true
-  enable_dns_hostnames = true
-
-  tags = merge(local.tags, { Name = "${var.name_prefix}-vpc" })
+resource "ibm_is_floating_ip" "jump" {
+  name   = "${var.name_prefix}-jump-fip"
+  zone   = data.ibm_is_zones.available.zones[0].name
+  target = ibm_is_instance.jump.primary_network_interface[0].id
+  tags   = local.tags
 }
 
-resource "aws_internet_gateway" "this" {
-  vpc_id = aws_vpc.this.id
-
-  tags = merge(local.tags, { Name = "${var.name_prefix}-igw" })
+resource "ibm_tg_gateway" "this" {
+  name     = "${var.name_prefix}-tgw"
+  location = var.ibm_region
+  global   = false
+  tags     = local.tags
 }
 
-resource "aws_subnet" "public" {
-  vpc_id                  = aws_vpc.this.id
-  cidr_block              = var.public_subnet_cidr
-  availability_zone       = data.aws_availability_zones.available.names[0]
-  map_public_ip_on_launch = true
-
-  tags = merge(local.tags, { Name = "${var.name_prefix}-public" })
+resource "ibm_tg_gateway_connection" "vpc" {
+  gateway       = ibm_tg_gateway.this.id
+  network_type  = "vpc"
+  name          = "${var.name_prefix}-tgw-vpc"
+  network_id    = ibm_is_vpc.this.id
+  base_connection = true
+  tags            = local.tags
 }
 
-resource "aws_subnet" "private" {
-  vpc_id            = aws_vpc.this.id
-  cidr_block        = var.private_subnet_cidr
-  availability_zone = data.aws_availability_zones.available.names[0]
-
-  tags = merge(local.tags, { Name = "${var.name_prefix}-private" })
-}
-
-resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.this.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.this.id
-  }
-
-  tags = merge(local.tags, { Name = "${var.name_prefix}-public-rt" })
-}
-
-resource "aws_route_table_association" "public" {
-  subnet_id      = aws_subnet.public.id
-  route_table_id = aws_route_table.public.id
-}
-
-resource "aws_route_table" "private" {
-  vpc_id = aws_vpc.this.id
-
-  # Route to remote networks via the transit gateway.
-  route {
-    cidr_block         = var.transit_gateway_destination_cidr
-    transit_gateway_id = aws_ec2_transit_gateway.this.id
-  }
-
-  tags = merge(local.tags, { Name = "${var.name_prefix}-private-rt" })
-}
-
-resource "aws_route_table_association" "private" {
-  subnet_id      = aws_subnet.private.id
-  route_table_id = aws_route_table.private.id
-}
-
-resource "aws_security_group" "jump" {
-  name        = "${var.name_prefix}-jump-sg"
-  description = "Access to the Windows jump server"
-  vpc_id      = aws_vpc.this.id
-
-  ingress {
-    description = "RDP from allowed CIDR"
-    from_port   = 3389
-    to_port     = 3389
-    protocol    = "tcp"
-    cidr_blocks = [var.allowed_rdp_cidr]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = merge(local.tags, { Name = "${var.name_prefix}-jump-sg" })
-}
-
-resource "aws_instance" "jump" {
-  ami                         = data.aws_ami.windows.id
-  instance_type               = var.instance_type
-  subnet_id                   = aws_subnet.public.id
-  vpc_security_group_ids      = [aws_security_group.jump.id]
-  associate_public_ip_address = true
-  key_name                    = var.key_name
-
-  # Keep storage and networking simple for a bastion-style jump host.
-  root_block_device {
-    volume_size = var.jump_volume_size
-    volume_type = "gp3"
-  }
-
-  tags = merge(local.tags, { Name = "${var.name_prefix}-jump" })
-}
-
-resource "aws_ec2_transit_gateway" "this" {
-  description = "${var.name_prefix}-tgw"
-
-  tags = merge(local.tags, { Name = "${var.name_prefix}-tgw" })
-}
-
-resource "aws_ec2_transit_gateway_vpc_attachment" "this" {
-  transit_gateway_id = aws_ec2_transit_gateway.this.id
-  vpc_id             = aws_vpc.this.id
-  subnet_ids         = [aws_subnet.private.id]
-
-  tags = merge(local.tags, { Name = "${var.name_prefix}-tgw-attachment" })
+resource "ibm_is_vpc_routing_table_route" "tgw_route" {
+  vpc           = ibm_is_vpc.this.id
+  routing_table = ibm_is_vpc.this.default_routing_table
+  name          = "${var.name_prefix}-to-tgw"
+  destination   = var.transit_gateway_destination_cidr
+  action        = "delegate"
+  next_hop      = ibm_tg_gateway_connection.vpc.id
 }
