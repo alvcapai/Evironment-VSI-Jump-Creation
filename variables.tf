@@ -40,9 +40,13 @@ variable "ssh_public_key" {
 }
 
 variable "windows_image_id" {
-  description = "IBM Cloud VPC image ID for the Windows Server image. Leave empty to auto-select latest Windows 2022 public image."
+  description = "IBM Cloud VPC image ID for the Windows Server image (e.g., ibm-windows-server-2022-full-standard-amd64-XX in your region)."
   type        = string
-  default     = ""
+
+  validation {
+    condition     = length(var.windows_image_id) > 0
+    error_message = "windows_image_id must be set to a valid Windows image ID in the chosen region."
+  }
 }
 
 variable "instance_profile" {
