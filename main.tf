@@ -25,6 +25,27 @@ locals {
   zone = data.ibm_is_zones.available.zones[0]
 }
 
+data "ibm_is_images" "windows" {
+  visibility = "public"
+  limit      = 1
+
+  sort {
+    by        = "created_at"
+    direction = "desc"
+  }
+
+  # Filter to recent Windows Server public images.
+  filter {
+    name   = "os.name"
+    values = ["windows-server-2022-*"]
+  }
+
+  filter {
+    name   = "architecture"
+    values = ["amd64"]
+  }
+}
+
 resource "ibm_is_vpc" "this" {
   name                      = "${var.name_prefix}-vpc"
   address_prefix_management = "manual"
@@ -104,7 +125,7 @@ resource "ibm_is_security_group_rule" "jump_ssh" {
 
 resource "ibm_is_instance" "jump" {
   name    = "${var.name_prefix}-jump"
-  image   = var.windows_image_id
+  image   = var.windows_image_id != "" ? var.windows_image_id : data.ibm_is_images.windows.images[0].id
   profile = var.instance_profile
   zone    = local.zone
   vpc     = ibm_is_vpc.this.id
@@ -153,7 +174,7 @@ resource "ibm_is_vpc_routing_table_route" "tgw_route" {
   name          = "${var.name_prefix}-to-tgw"
   destination   = var.transit_gateway_destination_cidr
   action        = "delegate"
-  next_hop      = ibm_tg_connection.vpc.id
+  next_hop      = ibm_tg_connection.vpc.connection_id
 
   depends_on = [ibm_tg_connection.vpc]
 }
