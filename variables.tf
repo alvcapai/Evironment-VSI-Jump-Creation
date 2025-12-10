@@ -44,8 +44,8 @@ variable "windows_image_id" {
   type        = string
 
   validation {
-    condition     = length(var.windows_image_id) > 0
-    error_message = "windows_image_id must be set to a valid Windows image ID in the chosen region."
+    condition = length(var.windows_image_id) > 0 && can(regex("^r[0-9]{3}-[0-9a-f-]+$", var.windows_image_id))
+    error_message = "windows_image_id must be set to a Windows image *ID* (e.g., r006-…) from the target region. Use `ibmcloud is images --os windows --visibility public` to list IDs."
   }
 }
 
