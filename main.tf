@@ -14,12 +14,7 @@ provider "ibm" {
 }
 
 locals {
-  tags = merge(
-    var.default_tags,
-    {
-      Project = "jumpserver-transit-gateway"
-    }
-  )
+  tags = toset(concat(var.default_tags, ["Project:jumpserver-transit-gateway"]))
 }
 
 data "ibm_is_zones" "available" {

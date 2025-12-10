@@ -58,6 +58,6 @@ variable "transit_gateway_destination_cidr" {
 
 variable "default_tags" {
   description = "Map of tags to apply to all resources."
-  type        = map(string)
-  default     = {}
+  type        = list(string)
+  default     = []
 }

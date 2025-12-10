@@ -21,6 +21,6 @@ Key inputs (see `variables.tf`):
 - `windows_image_id` (required) Windows Server image ID in your region
 - `allowed_admin_cidr` defaults to `179.100.99.37/32`; change if your admin IP changes
 - `transit_gateway_destination_cidr` network routed through the TGW
-- `ibm_region`, subnet CIDRs, instance profile, boot volume size, and tags
+- `ibm_region`, subnet CIDRs, instance profile, boot volume size, and tags (list of strings)
 
 Outputs include VPC/subnet IDs, security group ID, instance ID, floating IP, transit gateway ID, and the TGW connection/route IDs.
