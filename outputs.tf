@@ -18,6 +18,11 @@ output "security_group_id" {
   value       = ibm_is_security_group.jump.id
 }
 
+output "ssh_key_id" {
+  description = "ID of the SSH key created for the jump host."
+  value       = ibm_is_ssh_key.jump.id
+}
+
 output "jump_instance_id" {
   description = "ID of the Windows jump server instance."
   value       = ibm_is_instance.jump.id

@@ -31,6 +31,12 @@ resource "ibm_is_vpc" "this" {
   tags = local.tags
 }
 
+resource "ibm_is_ssh_key" "jump" {
+  name       = "${var.name_prefix}-ssh-key"
+  public_key = var.ssh_public_key
+  tags       = local.tags
+}
+
 resource "ibm_is_public_gateway" "public" {
   name = "${var.name_prefix}-pgw"
   vpc  = ibm_is_vpc.this.id
@@ -97,7 +103,7 @@ resource "ibm_is_instance" "jump" {
     security_groups = [ibm_is_security_group.jump.id]
   }
 
-  keys = [var.ssh_key_id]
+  keys = [ibm_is_ssh_key.jump.id]
 
   boot_volume {
     name                             = "${var.name_prefix}-jump-boot"

@@ -28,8 +28,8 @@ variable "allowed_admin_cidr" {
   default     = "179.100.99.37/32"
 }
 
-variable "ssh_key_id" {
-  description = "IBM Cloud SSH key ID used to access the instance and decrypt the Windows password."
+variable "ssh_public_key" {
+  description = "Public SSH key material used to create the IBM Cloud SSH key for the jump host."
   type        = string
 }
 

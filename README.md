@@ -12,12 +12,12 @@ Creates an IBM Cloud VPC with a Windows jump host, floating IP, restrictive secu
 ## Usage
 1) Initialize: `terraform init`
 2) Plan (supplying your values):  
-   `terraform plan -var 'ssh_key_id=<ssh-key-uuid>' -var 'windows_image_id=<windows-image-uuid>'`
+   `terraform plan -var 'ssh_public_key=<your-ssh-public-key>' -var 'windows_image_id=<windows-image-uuid>'`
 3) Apply when ready:  
-   `terraform apply -var 'ssh_key_id=<ssh-key-uuid>' -var 'windows_image_id=<windows-image-uuid>'`
+   `terraform apply -var 'ssh_public_key=<your-ssh-public-key>' -var 'windows_image_id=<windows-image-uuid>'`
 
 Key inputs (see `variables.tf`):
-- `ssh_key_id` (required) IBM Cloud SSH key ID to decrypt the Windows password
+- `ssh_public_key` (required) Public key material; the module creates the IBM Cloud SSH key
 - `windows_image_id` (required) Windows Server image ID in your region
 - `allowed_admin_cidr` defaults to `179.100.99.37/32`; change if your admin IP changes
 - `transit_gateway_destination_cidr` network routed through the TGW
