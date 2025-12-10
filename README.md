@@ -25,4 +25,7 @@ Key inputs (see `variables.tf`):
 - `transit_gateway_destination_cidr` network routed through the TGW
 - `ibm_region`, subnet CIDRs, instance profile, boot volume size, and tags (list of strings)
 
+Notes:
+- The Windows 2025 image requires a boot volume of **at least 100 GB** (default set accordingly).
+
 Outputs include VPC/subnet IDs, security group ID, instance ID, floating IP, transit gateway ID, and the TGW connection/route IDs.

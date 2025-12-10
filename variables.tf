@@ -58,7 +58,8 @@ variable "instance_profile" {
 variable "jump_volume_size" {
   description = "Boot volume size in GB for the jump host."
   type        = number
-  default     = 50
+  # Windows 2025 image requires at least 100 GB.
+  default     = 100
 }
 
 variable "transit_gateway_destination_cidr" {
