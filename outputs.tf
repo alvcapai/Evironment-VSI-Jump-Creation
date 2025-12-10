@@ -40,7 +40,7 @@ output "transit_gateway_id" {
 
 output "transit_gateway_connection_id" {
   description = "ID of the VPC connection to the transit gateway."
-  value       = ibm_tg_gateway_connection.vpc.id
+  value       = ibm_tg_connection.vpc.id
 }
 
 output "tgw_route_id" {

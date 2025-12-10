@@ -26,6 +26,10 @@ data "ibm_is_zones" "available" {
   region = var.ibm_region
 }
 
+locals {
+  zone = data.ibm_is_zones.available.zones[0]
+}
+
 resource "ibm_is_vpc" "this" {
   name = "${var.name_prefix}-vpc"
   tags = local.tags
@@ -40,14 +44,14 @@ resource "ibm_is_ssh_key" "jump" {
 resource "ibm_is_public_gateway" "public" {
   name = "${var.name_prefix}-pgw"
   vpc  = ibm_is_vpc.this.id
-  zone = data.ibm_is_zones.available.zones[0].name
+  zone = local.zone
   tags = local.tags
 }
 
 resource "ibm_is_subnet" "public" {
   name                     = "${var.name_prefix}-public"
   vpc                      = ibm_is_vpc.this.id
-  zone                     = data.ibm_is_zones.available.zones[0].name
+  zone                     = local.zone
   ipv4_cidr_block          = var.public_subnet_cidr
   public_gateway           = ibm_is_public_gateway.public.id
   total_ipv4_address_count = null
@@ -57,7 +61,7 @@ resource "ibm_is_subnet" "public" {
 resource "ibm_is_subnet" "private" {
   name                     = "${var.name_prefix}-private"
   vpc                      = ibm_is_vpc.this.id
-  zone                     = data.ibm_is_zones.available.zones[0].name
+  zone                     = local.zone
   ipv4_cidr_block          = var.private_subnet_cidr
   total_ipv4_address_count = null
   tags                     = local.tags
@@ -95,7 +99,7 @@ resource "ibm_is_instance" "jump" {
   name    = "${var.name_prefix}-jump"
   image   = var.windows_image_id
   profile = var.instance_profile
-  zone    = data.ibm_is_zones.available.zones[0].name
+  zone    = local.zone
   vpc     = ibm_is_vpc.this.id
 
   primary_network_interface {
@@ -118,7 +122,7 @@ resource "ibm_is_instance" "jump" {
 
 resource "ibm_is_floating_ip" "jump" {
   name   = "${var.name_prefix}-jump-fip"
-  zone   = data.ibm_is_zones.available.zones[0].name
+  zone   = local.zone
   target = ibm_is_instance.jump.primary_network_interface[0].id
   tags   = local.tags
 }
@@ -130,13 +134,13 @@ resource "ibm_tg_gateway" "this" {
   tags     = local.tags
 }
 
-resource "ibm_tg_gateway_connection" "vpc" {
-  gateway       = ibm_tg_gateway.this.id
-  network_type  = "vpc"
-  name          = "${var.name_prefix}-tgw-vpc"
-  network_id    = ibm_is_vpc.this.id
+resource "ibm_tg_connection" "vpc" {
+  gateway        = ibm_tg_gateway.this.id
+  network_type   = "vpc"
+  name           = "${var.name_prefix}-tgw-vpc"
+  network_id     = ibm_is_vpc.this.id
   base_connection = true
-  tags            = local.tags
+  tags           = local.tags
 }
 
 resource "ibm_is_vpc_routing_table_route" "tgw_route" {
@@ -145,5 +149,5 @@ resource "ibm_is_vpc_routing_table_route" "tgw_route" {
   name          = "${var.name_prefix}-to-tgw"
   destination   = var.transit_gateway_destination_cidr
   action        = "delegate"
-  next_hop      = ibm_tg_gateway_connection.vpc.id
+  next_hop      = ibm_tg_connection.vpc.id
 }
