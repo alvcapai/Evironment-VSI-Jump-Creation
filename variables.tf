@@ -72,12 +72,6 @@ variable "jump_volume_size" {
   default     = 100
 }
 
-variable "transit_gateway_destination_cidr" {
-  description = "CIDR routed from the VPC to the transit gateway."
-  type        = string
-  default     = "172.16.0.0/12"
-}
-
 variable "default_tags" {
   description = "Map of tags to apply to all resources."
   type        = list(string)

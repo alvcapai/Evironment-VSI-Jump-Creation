@@ -142,38 +142,3 @@ resource "ibm_is_floating_ip" "jump" {
   resource_group = data.ibm_resource_group.rg.id
   tags   = local.tags
 }
-
-resource "ibm_tg_gateway" "this" {
-  name     = "${var.name_prefix}-tgw"
-  location = var.ibm_region
-  global   = false
-  resource_group = data.ibm_resource_group.rg.id
-  tags     = local.tags
-}
-
-resource "ibm_tg_connection" "vpc" {
-  gateway      = ibm_tg_gateway.this.id
-  network_type = "vpc"
-  name         = "${var.name_prefix}-tgw-vpc"
-  network_id   = ibm_is_vpc.this.crn
-}
-
-resource "time_sleep" "wait_for_tg_connection" {
-  depends_on      = [ibm_tg_connection.vpc]
-  create_duration = "45s"
-}
-
-resource "ibm_is_vpc_routing_table_route" "tgw_route" {
-  vpc           = ibm_is_vpc.this.id
-  routing_table = ibm_is_vpc.this.default_routing_table
-  zone          = local.zone
-  name          = "${var.name_prefix}-to-tgw"
-  destination   = var.transit_gateway_destination_cidr
-  # Transit Gateway route: deliver to the TG connection (API expects deliver+connection_id).
-  action   = "deliver"
-  next_hop = ibm_tg_connection.vpc.connection_id
-
-  depends_on = [
-    time_sleep.wait_for_tg_connection
-  ]
-}

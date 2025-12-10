@@ -35,15 +35,15 @@ output "jump_floating_ip" {
 
 output "transit_gateway_id" {
   description = "ID of the transit gateway."
-  value       = ibm_tg_gateway.this.id
+  value       = null
 }
 
 output "transit_gateway_connection_id" {
   description = "ID of the VPC connection to the transit gateway."
-  value       = ibm_tg_connection.vpc.id
+  value       = null
 }
 
 output "tgw_route_id" {
   description = "ID of the VPC route that delegates traffic to the transit gateway."
-  value       = ibm_is_vpc_routing_table_route.tgw_route.id
+  value       = null
 }
