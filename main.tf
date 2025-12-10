@@ -151,9 +151,8 @@ resource "ibm_is_vpc_routing_table_route" "tgw_route" {
   zone          = local.zone
   name          = "${var.name_prefix}-to-tgw"
   destination   = var.transit_gateway_destination_cidr
-  action        = "delegate"
-  # Use the TGW connection CRN for delegation (avoids VPN next-hop validation).
-  next_hop      = ibm_tg_connection.vpc.crn
+  action   = "deliver"
+  next_hop = ibm_tg_connection.vpc.id
 
   depends_on = [ibm_tg_connection.vpc]
 }
