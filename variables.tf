@@ -41,7 +41,11 @@ variable "private_subnet_cidr" {
 variable "allowed_admin_cidr" {
   description = "CIDR allowed to reach the jump host on RDP/SSH."
   type        = string
-  default     = "179.100.99.37/32"
+
+  validation {
+    condition     = length(var.allowed_admin_cidr) > 0
+    error_message = "allowed_admin_cidr must be set to your public IP/CIDR (e.g., 203.0.113.10/32)."
+  }
 }
 
 variable "ssh_public_key" {
