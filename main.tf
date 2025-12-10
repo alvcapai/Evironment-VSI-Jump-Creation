@@ -152,7 +152,8 @@ resource "ibm_is_vpc_routing_table_route" "tgw_route" {
   name          = "${var.name_prefix}-to-tgw"
   destination   = var.transit_gateway_destination_cidr
   action        = "delegate"
-  next_hop      = ibm_tg_connection.vpc.id
+  # Use the transit gateway connection ID for delegation.
+  next_hop      = ibm_tg_connection.vpc.connection_id
 
   depends_on = [ibm_tg_connection.vpc]
 }
