@@ -145,6 +145,11 @@ resource "ibm_tg_connection" "vpc" {
   network_id   = ibm_is_vpc.this.crn
 }
 
+resource "time_sleep" "wait_for_tg_connection" {
+  depends_on      = [ibm_tg_connection.vpc]
+  create_duration = "45s"
+}
+
 resource "ibm_is_vpc_routing_table_route" "tgw_route" {
   vpc           = ibm_is_vpc.this.id
   routing_table = ibm_is_vpc.this.default_routing_table
@@ -155,5 +160,7 @@ resource "ibm_is_vpc_routing_table_route" "tgw_route" {
   action   = "deliver"
   next_hop = ibm_tg_connection.vpc.connection_id
 
-  depends_on = [ibm_tg_connection.vpc]
+  depends_on = [
+    time_sleep.wait_for_tg_connection
+  ]
 }
