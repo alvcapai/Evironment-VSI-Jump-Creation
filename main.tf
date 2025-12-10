@@ -49,7 +49,6 @@ resource "ibm_is_vpc_address_prefix" "zone" {
   vpc  = ibm_is_vpc.this.id
   zone = local.zone
   cidr = var.vpc_cidr
-  tags = local.tags
 }
 
 resource "ibm_is_subnet" "public" {
