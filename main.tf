@@ -113,8 +113,6 @@ resource "ibm_is_instance" "jump" {
     name                             = "${var.name_prefix}-jump-boot"
     profile                          = "general-purpose"
     size                             = var.jump_volume_size
-    delete_volume_on_instance_delete = true
-    tags                             = local.tags
   }
 
   tags = local.tags
@@ -135,12 +133,10 @@ resource "ibm_tg_gateway" "this" {
 }
 
 resource "ibm_tg_connection" "vpc" {
-  gateway        = ibm_tg_gateway.this.id
-  network_type   = "vpc"
-  name           = "${var.name_prefix}-tgw-vpc"
-  network_id     = ibm_is_vpc.this.id
-  base_connection = true
-  tags           = local.tags
+  gateway      = ibm_tg_gateway.this.id
+  network_type = "vpc"
+  name         = "${var.name_prefix}-tgw-vpc"
+  network_id   = ibm_is_vpc.this.id
 }
 
 resource "ibm_is_vpc_routing_table_route" "tgw_route" {
