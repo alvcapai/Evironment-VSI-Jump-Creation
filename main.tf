@@ -59,6 +59,8 @@ resource "ibm_is_subnet" "public" {
   public_gateway           = ibm_is_public_gateway.public.id
   total_ipv4_address_count = null
   tags                     = local.tags
+
+  depends_on = [ibm_is_vpc_address_prefix.zone]
 }
 
 resource "ibm_is_subnet" "private" {
@@ -68,6 +70,8 @@ resource "ibm_is_subnet" "private" {
   ipv4_cidr_block          = var.private_subnet_cidr
   total_ipv4_address_count = null
   tags                     = local.tags
+
+  depends_on = [ibm_is_vpc_address_prefix.zone]
 }
 
 resource "ibm_is_security_group" "jump" {
@@ -149,5 +153,7 @@ resource "ibm_is_vpc_routing_table_route" "tgw_route" {
   name          = "${var.name_prefix}-to-tgw"
   destination   = var.transit_gateway_destination_cidr
   action        = "delegate"
-  next_hop      = ibm_tg_connection.vpc.id
+  next_hop      = ibm_tg_gateway.this.crn
+
+  depends_on = [ibm_tg_connection.vpc]
 }
