@@ -10,6 +10,12 @@ variable "name_prefix" {
   default     = "jump"
 }
 
+variable "vpc_cidr" {
+  description = "CIDR block for the VPC address prefix."
+  type        = string
+  default     = "10.0.0.0/16"
+}
+
 variable "public_subnet_cidr" {
   description = "CIDR block for the public subnet."
   type        = string

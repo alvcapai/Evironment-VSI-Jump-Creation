@@ -26,8 +26,9 @@ locals {
 }
 
 resource "ibm_is_vpc" "this" {
-  name = "${var.name_prefix}-vpc"
-  tags = local.tags
+  name                      = "${var.name_prefix}-vpc"
+  address_prefix_management = "manual"
+  tags                      = local.tags
 }
 
 resource "ibm_is_ssh_key" "jump" {
@@ -40,6 +41,14 @@ resource "ibm_is_public_gateway" "public" {
   name = "${var.name_prefix}-pgw"
   vpc  = ibm_is_vpc.this.id
   zone = local.zone
+  tags = local.tags
+}
+
+resource "ibm_is_vpc_address_prefix" "zone" {
+  name = "${var.name_prefix}-prefix"
+  vpc  = ibm_is_vpc.this.id
+  zone = local.zone
+  cidr = var.vpc_cidr
   tags = local.tags
 }
 
@@ -131,7 +140,7 @@ resource "ibm_tg_connection" "vpc" {
   gateway      = ibm_tg_gateway.this.id
   network_type = "vpc"
   name         = "${var.name_prefix}-tgw-vpc"
-  network_id   = ibm_is_vpc.this.id
+  network_id   = ibm_is_vpc.this.crn
 }
 
 resource "ibm_is_vpc_routing_table_route" "tgw_route" {
