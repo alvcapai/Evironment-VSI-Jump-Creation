@@ -13,6 +13,10 @@ provider "ibm" {
   region = var.ibm_region
 }
 
+data "ibm_resource_group" "rg" {
+  name = var.resource_group_name
+}
+
 locals {
   tags = toset(concat(var.default_tags, ["Project:jumpserver-transit-gateway"]))
 }
@@ -28,12 +32,14 @@ locals {
 resource "ibm_is_vpc" "this" {
   name                      = "${var.name_prefix}-vpc"
   address_prefix_management = "manual"
+  resource_group            = data.ibm_resource_group.rg.id
   tags                      = local.tags
 }
 
 resource "ibm_is_ssh_key" "jump" {
   name       = "${var.name_prefix}-ssh-key"
   public_key = var.ssh_public_key
+  resource_group = data.ibm_resource_group.rg.id
   tags       = local.tags
 }
 
@@ -41,6 +47,7 @@ resource "ibm_is_public_gateway" "public" {
   name = "${var.name_prefix}-pgw"
   vpc  = ibm_is_vpc.this.id
   zone = local.zone
+  resource_group = data.ibm_resource_group.rg.id
   tags = local.tags
 }
 
@@ -58,6 +65,7 @@ resource "ibm_is_subnet" "public" {
   ipv4_cidr_block          = var.public_subnet_cidr
   public_gateway           = ibm_is_public_gateway.public.id
   total_ipv4_address_count = null
+  resource_group           = data.ibm_resource_group.rg.id
   tags                     = local.tags
 
   depends_on = [ibm_is_vpc_address_prefix.zone]
@@ -69,6 +77,7 @@ resource "ibm_is_subnet" "private" {
   zone                     = local.zone
   ipv4_cidr_block          = var.private_subnet_cidr
   total_ipv4_address_count = null
+  resource_group           = data.ibm_resource_group.rg.id
   tags                     = local.tags
 
   depends_on = [ibm_is_vpc_address_prefix.zone]
@@ -77,6 +86,7 @@ resource "ibm_is_subnet" "private" {
 resource "ibm_is_security_group" "jump" {
   name = "${var.name_prefix}-jump-sg"
   vpc  = ibm_is_vpc.this.id
+  resource_group = data.ibm_resource_group.rg.id
   tags = local.tags
 }
 
@@ -108,6 +118,7 @@ resource "ibm_is_instance" "jump" {
   profile = var.instance_profile
   zone    = local.zone
   vpc     = ibm_is_vpc.this.id
+  resource_group = data.ibm_resource_group.rg.id
 
   primary_network_interface {
     subnet          = ibm_is_subnet.public.id
@@ -128,6 +139,7 @@ resource "ibm_is_instance" "jump" {
 resource "ibm_is_floating_ip" "jump" {
   name   = "${var.name_prefix}-jump-fip"
   target = ibm_is_instance.jump.primary_network_interface[0].id
+  resource_group = data.ibm_resource_group.rg.id
   tags   = local.tags
 }
 
@@ -135,6 +147,7 @@ resource "ibm_tg_gateway" "this" {
   name     = "${var.name_prefix}-tgw"
   location = var.ibm_region
   global   = false
+  resource_group = data.ibm_resource_group.rg.id
   tags     = local.tags
 }
 

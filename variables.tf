@@ -10,6 +10,16 @@ variable "name_prefix" {
   default     = "jump"
 }
 
+variable "resource_group_name" {
+  description = "Name of the IBM Cloud resource group to place all resources in (must already exist)."
+  type        = string
+
+  validation {
+    condition     = length(var.resource_group_name) > 0
+    error_message = "resource_group_name must be provided (e.g., Default or your specific RG name)."
+  }
+}
+
 variable "vpc_cidr" {
   description = "CIDR block for the VPC address prefix."
   type        = string
