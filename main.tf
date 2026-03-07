@@ -17,23 +17,12 @@ data "ibm_resource_group" "rg" {
   name = var.resource_group_name
 }
 
+data "ibm_is_vpc" "this" {
+  name = "vpc-alvaro"
+}
+
 locals {
   tags = toset(concat(var.default_tags, ["Project:linux-jumpserver-migration"]))
-}
-
-data "ibm_is_zones" "available" {
-  region = var.ibm_region
-}
-
-locals {
-  zone = data.ibm_is_zones.available.zones[0]
-}
-
-resource "ibm_is_vpc" "this" {
-  name                      = "${var.name_prefix}-vpc"
-  address_prefix_management = "manual"
-  resource_group            = data.ibm_resource_group.rg.id
-  tags                      = local.tags
 }
 
 resource "ibm_is_ssh_key" "jump" {
@@ -45,47 +34,38 @@ resource "ibm_is_ssh_key" "jump" {
 
 resource "ibm_is_public_gateway" "public" {
   name = "${var.name_prefix}-pgw"
-  vpc  = ibm_is_vpc.this.id
+  vpc  = data.ibm_is_vpc.this.id
   zone = local.zone
   resource_group = data.ibm_resource_group.rg.id
   tags = local.tags
 }
 
-resource "ibm_is_vpc_address_prefix" "zone" {
-  name = "${var.name_prefix}-prefix"
-  vpc  = ibm_is_vpc.this.id
-  zone = local.zone
-  cidr = var.vpc_cidr
-}
+# Removido address prefix pois vamos usar a VPC existente
 
 resource "ibm_is_subnet" "public" {
   name                     = "${var.name_prefix}-public"
-  vpc                      = ibm_is_vpc.this.id
+  vpc                      = data.ibm_is_vpc.this.id
   zone                     = local.zone
   ipv4_cidr_block          = var.public_subnet_cidr
   public_gateway           = ibm_is_public_gateway.public.id
   total_ipv4_address_count = null
   resource_group           = data.ibm_resource_group.rg.id
   tags                     = local.tags
-
-  depends_on = [ibm_is_vpc_address_prefix.zone]
 }
 
 resource "ibm_is_subnet" "private" {
   name                     = "${var.name_prefix}-private"
-  vpc                      = ibm_is_vpc.this.id
+  vpc                      = data.ibm_is_vpc.this.id
   zone                     = local.zone
   ipv4_cidr_block          = var.private_subnet_cidr
   total_ipv4_address_count = null
   resource_group           = data.ibm_resource_group.rg.id
   tags                     = local.tags
-
-  depends_on = [ibm_is_vpc_address_prefix.zone]
 }
 
 resource "ibm_is_security_group" "jump" {
   name = "${var.name_prefix}-jump-sg"
-  vpc  = ibm_is_vpc.this.id
+  vpc  = data.ibm_is_vpc.this.id
   resource_group = data.ibm_resource_group.rg.id
   tags = local.tags
 }
@@ -107,7 +87,7 @@ resource "ibm_is_instance" "jump" {
   image   = var.linux_image_id
   profile = var.instance_profile
   zone    = local.zone
-  vpc     = ibm_is_vpc.this.id
+  vpc     = data.ibm_is_vpc.this.id
   resource_group = data.ibm_resource_group.rg.id
 
   primary_network_interface {
