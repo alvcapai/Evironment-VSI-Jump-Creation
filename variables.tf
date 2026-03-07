@@ -7,7 +7,7 @@ variable "ibm_region" {
 variable "name_prefix" {
   description = "Prefix used to name resources."
   type        = string
-  default     = "jump"
+  default     = "linux-jump"
 }
 
 variable "resource_group_name" {
@@ -39,7 +39,7 @@ variable "private_subnet_cidr" {
 }
 
 variable "allowed_admin_cidr" {
-  description = "CIDR allowed to reach the jump host on RDP/SSH."
+  description = "CIDR allowed to reach the jump host on SSH."
   type        = string
 
   validation {
@@ -53,27 +53,26 @@ variable "ssh_public_key" {
   type        = string
 }
 
-variable "windows_image_id" {
-  description = "IBM Cloud VPC image ID for the Windows Server image (e.g., ibm-windows-server-2022-full-standard-amd64-XX in your region)."
+variable "linux_image_id" {
+  description = "IBM Cloud VPC image ID for the Linux image (e.g., Ubuntu, Debian, RHEL)."
   type        = string
 
   validation {
-    condition = length(var.windows_image_id) > 0 && can(regex("^r[0-9]{3}-[0-9a-f-]+$", var.windows_image_id))
-    error_message = "windows_image_id must be set to a Windows image *ID* (e.g., r006-…) from the target region. Use `ibmcloud is images --os windows --visibility public` to list IDs."
+    condition = length(var.linux_image_id) > 0 && can(regex("^r[0-9]{3}-[0-9a-f-]+$", var.linux_image_id))
+    error_message = "linux_image_id must be set to a valid image *ID* (e.g., r006-…)."
   }
 }
 
 variable "instance_profile" {
   description = "Instance profile for the jump host."
   type        = string
-  default     = "bx2-2x8"
+  default     = "cx2-2x4"
 }
 
 variable "jump_volume_size" {
   description = "Boot volume size in GB for the jump host."
   type        = number
-  # Windows 2025 image requires at least 100 GB.
-  default     = 100
+  default     = 40
 }
 
 variable "default_tags" {

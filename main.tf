@@ -18,7 +18,7 @@ data "ibm_resource_group" "rg" {
 }
 
 locals {
-  tags = toset(concat(var.default_tags, ["Project:jumpserver-transit-gateway"]))
+  tags = toset(concat(var.default_tags, ["Project:linux-jumpserver-migration"]))
 }
 
 data "ibm_is_zones" "available" {
@@ -90,16 +90,6 @@ resource "ibm_is_security_group" "jump" {
   tags = local.tags
 }
 
-resource "ibm_is_security_group_rule" "jump_rdp" {
-  group     = ibm_is_security_group.jump.id
-  direction = "inbound"
-  remote    = var.allowed_admin_cidr
-  tcp {
-    port_min = 3389
-    port_max = 3389
-  }
-}
-
 resource "ibm_is_security_group_rule" "jump_ssh" {
   group     = ibm_is_security_group.jump.id
   direction = "inbound"
@@ -114,7 +104,7 @@ resource "ibm_is_security_group_rule" "jump_ssh" {
 
 resource "ibm_is_instance" "jump" {
   name    = "${var.name_prefix}-jump"
-  image   = var.windows_image_id
+  image   = var.linux_image_id
   profile = var.instance_profile
   zone    = local.zone
   vpc     = ibm_is_vpc.this.id

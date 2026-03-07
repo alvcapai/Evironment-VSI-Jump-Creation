@@ -24,26 +24,11 @@ output "ssh_key_id" {
 }
 
 output "jump_instance_id" {
-  description = "ID of the Windows jump server instance."
+  description = "ID of the Linux jump server instance."
   value       = ibm_is_instance.jump.id
 }
 
 output "jump_floating_ip" {
   description = "Floating IP assigned to the jump server."
   value       = ibm_is_floating_ip.jump.address
-}
-
-output "transit_gateway_id" {
-  description = "ID of the transit gateway."
-  value       = null
-}
-
-output "transit_gateway_connection_id" {
-  description = "ID of the VPC connection to the transit gateway."
-  value       = null
-}
-
-output "tgw_route_id" {
-  description = "ID of the VPC route that delegates traffic to the transit gateway."
-  value       = null
 }
