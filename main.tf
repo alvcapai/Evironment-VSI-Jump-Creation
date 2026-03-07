@@ -13,15 +13,26 @@ provider "ibm" {
   region = var.ibm_region
 }
 
+variable "windows_image_id" {
+  description = "Legacy variable to satisfy Schematics. Not used."
+  type        = string
+  default     = "r006-00000000-0000-0000-0000-000000000000"
+}
+
 data "ibm_resource_group" "rg" {
   name = var.resource_group_name
 }
 
 data "ibm_is_vpc" "this" {
-  name = "vpc-alvaro"
+  name = var.existing_vpc_name
+}
+
+data "ibm_is_zones" "available" {
+  region = var.ibm_region
 }
 
 locals {
+  zone = data.ibm_is_zones.available.zones[0]
   tags = toset(concat(var.default_tags, ["Project:linux-jumpserver-migration"]))
 }
 
@@ -39,8 +50,6 @@ resource "ibm_is_public_gateway" "public" {
   resource_group = data.ibm_resource_group.rg.id
   tags = local.tags
 }
-
-# Removido address prefix pois vamos usar a VPC existente
 
 resource "ibm_is_subnet" "public" {
   name                     = "${var.name_prefix}-public"
@@ -74,13 +83,10 @@ resource "ibm_is_security_group_rule" "jump_ssh" {
   group     = ibm_is_security_group.jump.id
   direction = "inbound"
   remote    = var.allowed_admin_cidr
-  tcp {
-    port_min = 22
-    port_max = 22
-  }
+  protocol  = "tcp"
+  port_min  = 22
+  port_max  = 22
 }
-
-# No outbound rules defined to block all egress traffic.
 
 resource "ibm_is_instance" "jump" {
   name    = "${var.name_prefix}-jump"
