@@ -20,6 +20,11 @@ variable "resource_group_name" {
   }
 }
 
+variable "existing_vpc_name" {
+  description = "Name of the existing IBM Cloud VPC to deploy resources into."
+  type        = string
+}
+
 variable "vpc_cidr" {
   description = "CIDR block for the VPC address prefix."
   type        = string
