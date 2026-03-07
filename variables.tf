@@ -77,7 +77,7 @@ variable "instance_profile" {
 variable "jump_volume_size" {
   description = "Boot volume size in GB for the jump host."
   type        = number
-  default     = 40
+  default     = 100
 }
 
 variable "default_tags" {
