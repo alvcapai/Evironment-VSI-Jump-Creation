@@ -88,6 +88,12 @@ resource "ibm_is_security_group_rule" "jump_ssh" {
   port_max  = 22
 }
 
+resource "ibm_is_security_group_rule" "jump_egress_all" {
+  group     = ibm_is_security_group.jump.id
+  direction = "outbound"
+  remote    = "0.0.0.0/0"
+}
+
 resource "ibm_is_instance" "jump" {
   name    = "${var.name_prefix}-jump"
   image   = var.linux_image_id
