@@ -1,0 +1,25 @@
+ibmcloud_api_key = "<your-api-key>"
+region           = "us-south"
+zone             = "us-south-2"
+resource_group   = "Default"
+
+create_vpc        = false
+existing_vpc_name = "shared-prod-vpc"
+subnet_cidr       = "10.60.10.0/24"
+allowed_admin_cidr = "203.0.113.10/32"
+
+ssh_key_name = "shared-prod-ssh"
+
+sap_image_regex   = "sles.*sap"
+sap_instance_name = "sap-prod-vsi"
+sap_profile       = "bx2-8x32"
+
+cos_instance_name = "rackware-prod-cos"
+cos_bucket_name   = "rackware-prod-images"
+
+enable_custom_image   = true
+custom_image_file     = "/path/to/sles-sap-custom.qcow2"
+custom_image_name     = "rackware-sles-sap-custom"
+custom_image_object_key = "sles-sap-custom.qcow2"
+
+default_tags = ["env:prod", "owner:platform"]

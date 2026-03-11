@@ -1,0 +1,26 @@
+ibmcloud_api_key = "<your-api-key>"
+region           = "us-south"
+zone             = "us-south-1"
+resource_group   = "Default"
+
+create_vpc        = true
+vpc_name          = "rackware-dev-vpc"
+subnet_cidr       = "10.50.10.0/24"
+allowed_admin_cidr = "203.0.113.10/32"
+
+ssh_key_name   = "rackware-dev-ssh"
+ssh_public_key = "ssh-rsa AAAA..."
+
+sap_image_regex   = "sles.*sap"
+sap_instance_name = "sap-dev-vsi"
+sap_profile       = "bx2-4x16"
+
+cos_instance_name = "rackware-dev-cos"
+cos_bucket_name   = "rackware-dev-images"
+
+enable_custom_image   = false
+custom_image_file     = ""
+custom_image_name     = ""
+custom_image_object_key = ""
+
+default_tags = ["env:dev", "owner:platform"]
