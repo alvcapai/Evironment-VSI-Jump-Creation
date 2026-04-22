@@ -14,8 +14,8 @@ output "security_group_id" {
 }
 
 output "ssh_key_id" {
-  description = "ID of the SSH key created for the jump host."
-  value       = ibm_is_ssh_key.jump.id
+  description = "ID of the existing SSH key used by the jump host."
+  value       = data.ibm_is_ssh_key.selected.id
 }
 
 output "jump_instance_id" {

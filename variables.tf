@@ -45,9 +45,14 @@ variable "allowed_admin_cidr" {
   }
 }
 
-variable "ssh_public_key" {
-  description = "Public SSH key material (RSA) for the jump host."
+variable "existing_ssh_key_name" {
+  description = "Name of the existing IBM Cloud SSH key to use for the jump host."
   type        = string
+
+  validation {
+    condition     = length(var.existing_ssh_key_name) > 0
+    error_message = "existing_ssh_key_name must be provided with the target existing SSH key name."
+  }
 }
 
 variable "linux_image_id" {

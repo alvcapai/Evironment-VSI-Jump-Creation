@@ -36,11 +36,9 @@ locals {
   tags = toset(concat(var.default_tags, ["Project:linux-jumpserver-migration"]))
 }
 
-resource "ibm_is_ssh_key" "jump" {
-  name           = "${var.name_prefix}-ssh-key"
-  public_key     = var.ssh_public_key
+data "ibm_is_ssh_key" "selected" {
+  name           = var.existing_ssh_key_name
   resource_group = data.ibm_resource_group.rg.id
-  tags           = local.tags
 }
 
 
@@ -79,7 +77,7 @@ resource "ibm_is_instance" "jump" {
     security_groups = [ibm_is_security_group.jump.id]
   }
 
-  keys = [ibm_is_ssh_key.jump.id]
+  keys = [data.ibm_is_ssh_key.selected.id]
 
   boot_volume {
     name    = "${var.name_prefix}-jump-boot"
