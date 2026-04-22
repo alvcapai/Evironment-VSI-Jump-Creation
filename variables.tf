@@ -63,7 +63,7 @@ variable "linux_image_id" {
   type        = string
 
   validation {
-    condition = length(var.linux_image_id) > 0 && can(regex("^r[0-9]{3}-[0-9a-f-]+$", var.linux_image_id))
+    condition     = length(var.linux_image_id) > 0 && can(regex("^r[0-9]{3}-[0-9a-f-]+$", var.linux_image_id))
     error_message = "linux_image_id must be set to a valid image *ID* (e.g., r006-…)."
   }
 }
@@ -86,7 +86,3 @@ variable "default_tags" {
   default     = []
 }
 
-variable "existing_vpc_name" {
-  description = "Name of the existing VPC"
-  type        = string
-}

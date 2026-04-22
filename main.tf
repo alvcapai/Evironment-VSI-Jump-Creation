@@ -37,10 +37,10 @@ locals {
 }
 
 resource "ibm_is_ssh_key" "jump" {
-  name       = "${var.name_prefix}-ssh-key"
-  public_key = var.ssh_public_key
+  name           = "${var.name_prefix}-ssh-key"
+  public_key     = var.ssh_public_key
   resource_group = data.ibm_resource_group.rg.id
-  tags       = local.tags
+  tags           = local.tags
 }
 
 # Usar Public Gateway existente
@@ -58,10 +58,10 @@ data "ibm_is_subnet" "private" {
 }
 
 resource "ibm_is_security_group" "jump" {
-  name = "${var.name_prefix}-jump-sg"
-  vpc  = data.ibm_is_vpc.this.id
+  name           = "${var.name_prefix}-jump-sg"
+  vpc            = data.ibm_is_vpc.this.id
   resource_group = data.ibm_resource_group.rg.id
-  tags = local.tags
+  tags           = local.tags
 }
 
 resource "ibm_is_security_group_rule" "jump_ssh" {
@@ -80,11 +80,11 @@ resource "ibm_is_security_group_rule" "jump_egress_all" {
 }
 
 resource "ibm_is_instance" "jump" {
-  name    = "${var.name_prefix}-jump"
-  image   = var.linux_image_id
-  profile = var.instance_profile
-  zone    = local.zone
-  vpc     = data.ibm_is_vpc.this.id
+  name           = "${var.name_prefix}-jump"
+  image          = var.linux_image_id
+  profile        = var.instance_profile
+  zone           = local.zone
+  vpc            = data.ibm_is_vpc.this.id
   resource_group = data.ibm_resource_group.rg.id
 
   primary_network_interface {
@@ -95,17 +95,17 @@ resource "ibm_is_instance" "jump" {
   keys = [ibm_is_ssh_key.jump.id]
 
   boot_volume {
-    name                             = "${var.name_prefix}-jump-boot"
-    profile                          = "general-purpose"
-    size                             = var.jump_volume_size
+    name    = "${var.name_prefix}-jump-boot"
+    profile = "general-purpose"
+    size    = var.jump_volume_size
   }
 
   tags = local.tags
 }
 
 resource "ibm_is_floating_ip" "jump" {
-  name   = "${var.name_prefix}-jump-fip"
-  target = ibm_is_instance.jump.primary_network_interface[0].id
+  name           = "${var.name_prefix}-jump-fip"
+  target         = ibm_is_instance.jump.primary_network_interface[0].id
   resource_group = data.ibm_resource_group.rg.id
-  tags   = local.tags
+  tags           = local.tags
 }
