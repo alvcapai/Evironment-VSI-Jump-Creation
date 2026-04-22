@@ -25,22 +25,14 @@ variable "existing_vpc_name" {
   type        = string
 }
 
-variable "vpc_cidr" {
-  description = "Legacy variable for address prefix. Not used."
+variable "existing_subnet_name" {
+  description = "Name of the existing subnet where the jump host will be deployed."
   type        = string
-  default     = "10.0.0.0/16"
-}
 
-variable "public_subnet_cidr" {
-  description = "Legacy variable. Not used."
-  type        = string
-  default     = "10.240.2.0/24"
-}
-
-variable "private_subnet_cidr" {
-  description = "Legacy variable. Not used."
-  type        = string
-  default     = "10.240.1.0/24"
+  validation {
+    condition     = length(var.existing_subnet_name) > 0
+    error_message = "existing_subnet_name must be provided with the target existing subnet name."
+  }
 }
 
 variable "allowed_admin_cidr" {

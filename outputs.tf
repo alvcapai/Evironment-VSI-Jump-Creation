@@ -3,14 +3,9 @@ output "vpc_id" {
   value       = data.ibm_is_vpc.this.id
 }
 
-output "public_subnet_id" {
-  description = "ID of the public subnet hosting the jump server."
-  value       = data.ibm_is_subnet.public.id
-}
-
-output "private_subnet_id" {
-  description = "ID of the private subnet."
-  value       = data.ibm_is_subnet.private.id
+output "subnet_id" {
+  description = "ID of the existing subnet hosting the jump server."
+  value       = data.ibm_is_subnet.selected.id
 }
 
 output "security_group_id" {

@@ -27,12 +27,12 @@ data "ibm_is_vpc" "this" {
   name = var.existing_vpc_name
 }
 
-data "ibm_is_zones" "available" {
-  region = var.ibm_region
+data "ibm_is_subnet" "selected" {
+  name = var.existing_subnet_name
 }
 
 locals {
-  zone = data.ibm_is_zones.available.zones[0]
+  zone = data.ibm_is_subnet.selected.zone
   tags = toset(concat(var.default_tags, ["Project:linux-jumpserver-migration"]))
 }
 
@@ -43,19 +43,6 @@ resource "ibm_is_ssh_key" "jump" {
   tags           = local.tags
 }
 
-# Usar Public Gateway existente
-data "ibm_is_public_gateway" "public" {
-  name = "${var.name_prefix}-pgw"
-}
-
-# Usar Subnets existentes
-data "ibm_is_subnet" "public" {
-  name = "${var.name_prefix}-public"
-}
-
-data "ibm_is_subnet" "private" {
-  name = "${var.name_prefix}-private"
-}
 
 resource "ibm_is_security_group" "jump" {
   name           = "${var.name_prefix}-jump-sg"
@@ -88,7 +75,7 @@ resource "ibm_is_instance" "jump" {
   resource_group = data.ibm_resource_group.rg.id
 
   primary_network_interface {
-    subnet          = data.ibm_is_subnet.public.id
+    subnet          = data.ibm_is_subnet.selected.id
     security_groups = [ibm_is_security_group.jump.id]
   }
 
