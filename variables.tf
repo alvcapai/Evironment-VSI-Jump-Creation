@@ -26,19 +26,19 @@ variable "existing_vpc_name" {
 }
 
 variable "vpc_cidr" {
-  description = "CIDR block for the VPC address prefix."
+  description = "Legacy variable for address prefix. Not used."
   type        = string
   default     = "10.0.0.0/16"
 }
 
 variable "public_subnet_cidr" {
-  description = "CIDR block for the public subnet."
+  description = "Legacy variable. Not used."
   type        = string
   default     = "10.240.2.0/24"
 }
 
 variable "private_subnet_cidr" {
-  description = "CIDR block for the private subnet."
+  description = "Legacy variable. Not used."
   type        = string
   default     = "10.240.1.0/24"
 }
@@ -54,12 +54,12 @@ variable "allowed_admin_cidr" {
 }
 
 variable "ssh_public_key" {
-  description = "Public SSH key material used to create the IBM Cloud SSH key for the jump host."
+  description = "Public SSH key material (RSA) for the jump host."
   type        = string
 }
 
 variable "linux_image_id" {
-  description = "IBM Cloud VPC image ID for the Linux image (e.g., Ubuntu, Debian, RHEL)."
+  description = "IBM Cloud VPC image ID (e.g., r006-…)."
   type        = string
 
   validation {
@@ -71,17 +71,22 @@ variable "linux_image_id" {
 variable "instance_profile" {
   description = "Instance profile for the jump host."
   type        = string
-  default     = "cx2-2x4"
+  default     = "bx2-4x16"
 }
 
 variable "jump_volume_size" {
-  description = "Boot volume size in GB for the jump host."
+  description = "Boot volume size in GB."
   type        = number
   default     = 100
 }
 
 variable "default_tags" {
-  description = "Map of tags to apply to all resources."
+  description = "Map of tags to apply."
   type        = list(string)
   default     = []
+}
+
+variable "existing_vpc_name" {
+  description = "Name of the existing VPC"
+  type        = string
 }

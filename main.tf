@@ -43,33 +43,18 @@ resource "ibm_is_ssh_key" "jump" {
   tags       = local.tags
 }
 
-resource "ibm_is_public_gateway" "public" {
+# Usar Public Gateway existente
+data "ibm_is_public_gateway" "public" {
   name = "${var.name_prefix}-pgw"
-  vpc  = data.ibm_is_vpc.this.id
-  zone = local.zone
-  resource_group = data.ibm_resource_group.rg.id
-  tags = local.tags
 }
 
-resource "ibm_is_subnet" "public" {
-  name                     = "${var.name_prefix}-public"
-  vpc                      = data.ibm_is_vpc.this.id
-  zone                     = local.zone
-  ipv4_cidr_block          = var.public_subnet_cidr
-  public_gateway           = ibm_is_public_gateway.public.id
-  total_ipv4_address_count = null
-  resource_group           = data.ibm_resource_group.rg.id
-  tags                     = local.tags
+# Usar Subnets existentes
+data "ibm_is_subnet" "public" {
+  name = "${var.name_prefix}-public"
 }
 
-resource "ibm_is_subnet" "private" {
-  name                     = "${var.name_prefix}-private"
-  vpc                      = data.ibm_is_vpc.this.id
-  zone                     = local.zone
-  ipv4_cidr_block          = var.private_subnet_cidr
-  total_ipv4_address_count = null
-  resource_group           = data.ibm_resource_group.rg.id
-  tags                     = local.tags
+data "ibm_is_subnet" "private" {
+  name = "${var.name_prefix}-private"
 }
 
 resource "ibm_is_security_group" "jump" {
@@ -103,7 +88,7 @@ resource "ibm_is_instance" "jump" {
   resource_group = data.ibm_resource_group.rg.id
 
   primary_network_interface {
-    subnet          = ibm_is_subnet.public.id
+    subnet          = data.ibm_is_subnet.public.id
     security_groups = [ibm_is_security_group.jump.id]
   }
 
