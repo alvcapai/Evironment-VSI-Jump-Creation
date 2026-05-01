@@ -13,31 +13,22 @@ provider "ibm" {
   region = var.ibm_region
 }
 
-variable "windows_image_id" {
-  description = "Legacy variable to satisfy Schematics. Not used."
-  type        = string
-  default     = "r006-00000000-0000-0000-0000-000000000000"
-}
-
 data "ibm_resource_group" "rg" {
-  name = var.resource_group_name
+  name = var.resource_group
 }
 
 data "ibm_is_vpc" "this" {
-  name = var.existing_vpc_name
-}
-
-data "ibm_is_subnet" "selected" {
-  name = var.existing_subnet_name
+  name = var.vpc
 }
 
 locals {
-  zone = data.ibm_is_subnet.selected.zone
-  tags = toset(concat(var.default_tags, ["Project:linux-jumpserver-migration"]))
+  subnet_id = data.ibm_is_vpc.this.subnets[0].id
+  zone      = data.ibm_is_vpc.this.subnets[0].zone
+  tags      = ["Project:linux-jumpserver-migration"]
 }
 
 data "ibm_is_ssh_key" "selected" {
-  name           = var.existing_ssh_key_name
+  name           = var.ssh_key
   resource_group = data.ibm_resource_group.rg.id
 }
 
@@ -52,7 +43,7 @@ resource "ibm_is_security_group" "jump" {
 resource "ibm_is_security_group_rule" "jump_ssh" {
   group     = ibm_is_security_group.jump.id
   direction = "inbound"
-  remote    = var.allowed_admin_cidr
+  remote    = "0.0.0.0/0"
   protocol  = "tcp"
   port_min  = 22
   port_max  = 22
@@ -66,14 +57,14 @@ resource "ibm_is_security_group_rule" "jump_egress_all" {
 
 resource "ibm_is_instance" "jump" {
   name           = "${var.name_prefix}-jump"
-  image          = var.linux_image_id
-  profile        = var.instance_profile
+  image          = var.image
+  profile        = var.machine_profile
   zone           = local.zone
   vpc            = data.ibm_is_vpc.this.id
   resource_group = data.ibm_resource_group.rg.id
 
   primary_network_interface {
-    subnet          = data.ibm_is_subnet.selected.id
+    subnet          = local.subnet_id
     security_groups = [ibm_is_security_group.jump.id]
   }
 
@@ -82,13 +73,14 @@ resource "ibm_is_instance" "jump" {
   boot_volume {
     name    = "${var.name_prefix}-jump-boot"
     profile = "general-purpose"
-    size    = var.jump_volume_size
+    size    = 100
   }
 
   tags = local.tags
 }
 
 resource "ibm_is_floating_ip" "jump" {
+  count          = var.create_floating_ip ? 1 : 0
   name           = "${var.name_prefix}-jump-fip"
   target         = ibm_is_instance.jump.primary_network_interface[0].id
   resource_group = data.ibm_resource_group.rg.id

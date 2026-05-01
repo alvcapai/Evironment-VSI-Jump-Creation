@@ -4,8 +4,8 @@ output "vpc_id" {
 }
 
 output "subnet_id" {
-  description = "ID of the existing subnet hosting the jump server."
-  value       = data.ibm_is_subnet.selected.id
+  description = "ID of the selected subnet hosting the jump server."
+  value       = local.subnet_id
 }
 
 output "security_group_id" {
@@ -25,5 +25,5 @@ output "jump_instance_id" {
 
 output "jump_floating_ip" {
   description = "Floating IP assigned to the jump server."
-  value       = ibm_is_floating_ip.jump.address
+  value       = var.create_floating_ip ? ibm_is_floating_ip.jump[0].address : null
 }

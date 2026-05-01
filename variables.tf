@@ -10,76 +10,50 @@ variable "name_prefix" {
   default     = "linux-jump"
 }
 
-variable "resource_group_name" {
+variable "resource_group" {
   description = "Name of the IBM Cloud resource group to place all resources in (must already exist)."
   type        = string
 
   validation {
-    condition     = length(var.resource_group_name) > 0
-    error_message = "resource_group_name must be provided (e.g., Default or your specific RG name)."
+    condition     = length(var.resource_group) > 0
+    error_message = "resource_group must be provided (e.g., Default or your specific RG name)."
   }
 }
 
-variable "existing_vpc_name" {
+variable "vpc" {
   description = "Name of the existing IBM Cloud VPC to deploy resources into."
   type        = string
 }
 
-variable "existing_subnet_name" {
-  description = "Name of the existing subnet where the jump host will be deployed."
-  type        = string
-
-  validation {
-    condition     = length(var.existing_subnet_name) > 0
-    error_message = "existing_subnet_name must be provided with the target existing subnet name."
-  }
-}
-
-variable "allowed_admin_cidr" {
-  description = "CIDR allowed to reach the jump host on SSH."
-  type        = string
-
-  validation {
-    condition     = length(var.allowed_admin_cidr) > 0
-    error_message = "allowed_admin_cidr must be set to your public IP/CIDR (e.g., 203.0.113.10/32)."
-  }
-}
-
-variable "existing_ssh_key_name" {
+variable "ssh_key" {
   description = "Name of the existing IBM Cloud SSH key to use for the jump host."
   type        = string
 
   validation {
-    condition     = length(var.existing_ssh_key_name) > 0
-    error_message = "existing_ssh_key_name must be provided with the target existing SSH key name."
+    condition     = length(var.ssh_key) > 0
+    error_message = "ssh_key must be provided with the target existing SSH key name."
   }
 }
 
-variable "linux_image_id" {
+variable "image" {
   description = "IBM Cloud VPC image ID (e.g., r006-…)."
   type        = string
 
   validation {
-    condition     = length(var.linux_image_id) > 0 && can(regex("^r[0-9]{3}-[0-9a-f-]+$", var.linux_image_id))
-    error_message = "linux_image_id must be set to a valid image *ID* (e.g., r006-…)."
+    condition     = length(var.image) > 0 && can(regex("^r[0-9]{3}-[0-9a-f-]+$", var.image))
+    error_message = "image must be set to a valid image *ID* (e.g., r006-…)."
   }
 }
 
-variable "instance_profile" {
+variable "machine_profile" {
   description = "Instance profile for the jump host."
   type        = string
   default     = "bx2-4x16"
 }
 
-variable "jump_volume_size" {
-  description = "Boot volume size in GB."
-  type        = number
-  default     = 100
-}
-
-variable "default_tags" {
-  description = "Map of tags to apply."
-  type        = list(string)
-  default     = []
+variable "create_floating_ip" {
+  description = "Set to true to create a floating IP for the jump host."
+  type        = bool
+  default     = false
 }
 
