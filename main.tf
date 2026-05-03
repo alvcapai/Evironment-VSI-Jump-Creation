@@ -74,7 +74,7 @@ resource "ibm_is_instance" "jump" {
   boot_volume {
     name    = "${var.name_prefix}-jump-boot"
     profile = "general-purpose"
-    size    = 100
+    size    = 1000
   }
 
   tags = local.tags
