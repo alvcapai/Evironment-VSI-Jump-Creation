@@ -62,6 +62,7 @@ resource "ibm_is_instance" "jump" {
   zone           = local.zone
   vpc            = data.ibm_is_vpc.this.id
   resource_group = data.ibm_resource_group.rg.id
+  user_data      = file("${path.module}/init.sh")
 
   primary_network_interface {
     subnet          = local.subnet_id
