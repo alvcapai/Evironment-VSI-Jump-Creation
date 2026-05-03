@@ -73,9 +73,8 @@ resource "ibm_is_instance" "jump" {
 
   boot_volume {
     name    = "${var.name_prefix}-jump-boot"
-    profile = "sdp"
-    size    = 1000
-    iops    = 3000
+    profile = "general-purpose"
+    size    = 100
   }
 
   tags = local.tags
@@ -87,4 +86,21 @@ resource "ibm_is_floating_ip" "jump" {
   target         = ibm_is_instance.jump.primary_network_interface[0].id
   resource_group = data.ibm_resource_group.rg.id
   tags           = local.tags
+}
+
+resource "ibm_is_volume" "data" {
+  name           = "${var.name_prefix}-jump-data"
+  profile        = "sdp"
+  zone           = local.zone
+  capacity       = 1000
+  iops           = 3000
+  resource_group = data.ibm_resource_group.rg.id
+  tags           = local.tags
+}
+
+resource "ibm_is_instance_volume_attachment" "data" {
+  instance                         = ibm_is_instance.jump.id
+  name                             = "${var.name_prefix}-jump-data-att"
+  volume                           = ibm_is_volume.data.id
+  delete_volume_on_instance_delete = true
 }
